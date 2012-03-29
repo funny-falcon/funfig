@@ -1,0 +1,59 @@
+Example
+=======
+
+    require 'funfig'
+    
+    UploadConf = Funfig.new do
+      param :root    do '/services' end
+      group :nginx   do
+        param :folder do File.join(_.root, 'nginx') end
+        param :port do '8000' end
+      end
+      param :public_ip_port do '*:80' end
+    end
+    
+    conf = UploadConf.new
+    p conf.nginx.folder
+    conf.root = "~/MailProject/upload"
+    p conf.nginx.folder
+    conf.each {|k,v| puts "#{k} #{v}"}
+    p conf
+    p conf.to_hash()
+    p conf.to_hash(true)
+    
+    Up1Conf = UploadConf.clone do
+      group :nginx do
+        param :folder do File.join(_.root, 'nganx') end
+        param :location do '/public' end
+      end
+    end
+    
+    conf1 = Up1Conf.new
+    conf1.update(conf.to_hash())
+    p conf1
+    conf1.nginx_reset!
+    p conf1
+
+TODO
+====
+
+1. define array of same kinds
+
+    Conf = Funfig.new do
+      param :port do 8000 end
+      param :folder do '/folder' end
+      array :servers do
+        param :port do _parent.port + _pos end
+        param :folder do File.join(_parent.folder, _pos.to_s end
+      end
+    end
+
+2. define hash of same kinds
+
+    Conf = Funfig.new do
+      hash :environments do
+        param :host     do 'localhost' end
+        param :database do "mybase_#{_name}" end
+      end
+    end
+
