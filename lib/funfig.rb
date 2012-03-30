@@ -14,6 +14,16 @@ module Funfig
       end
     end
   end
+
+  class ProxyGroup < BasicObject
+    def initialize(group)
+      @group = group
+    end
+    def method_missing(name, &block)
+      @group.group name, &block
+    end
+  end
+
   class Group
     def initialize(parent=nil) # :nodoc:
       @parent = parent
@@ -204,6 +214,28 @@ module Funfig
         _._cache_clear!
         remove_instance_variable(vname)  if instance_variable_defined?(vname)
       end
+    end
+
+    # syntax sugar proxy for declaring params
+    #
+    # :call-seq
+    #   conf = Funfig.new do
+    #     p.name_of_param :default_value
+    #     p.other_param { calculate_default }
+    #   end
+    def self.p
+      @proxy_param ||= ProxyParam.new(self)
+    end
+
+    # syntax sugar proxy for declaring group
+    #
+    # :call-seq
+    #   conf = Funfig.new do
+    #     g.name_of_group do
+    #     end
+    #   end
+    def self.g
+      @group_param ||= ProxyGroup.new(self)
     end
 
     # Create a copy of configuration scheme

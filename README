@@ -3,9 +3,9 @@ Example
 
     require 'funfig'
     
-    UploadConf = Funfig.new do |p|
+    UploadConf = Funfig.new do
       p.root '/services'
-      group :nginx   do |p|
+      g.nginx   do
         p.folder { File.join(_.root, 'nginx') }
         p.port '8000'
       end
@@ -22,9 +22,9 @@ Example
     p conf.to_hash(true)
     
     Up1Conf = UploadConf.clone do
-      group :nginx do
-        param :folder do File.join(_.root, 'nganx') end
-        param :location, '/public'
+      g.nginx do
+        p.folder { File.join(_.root, 'nganx') }
+        p.location, '/public'
       end
     end
     
