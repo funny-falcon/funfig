@@ -3,13 +3,13 @@ Example
 
     require 'funfig'
     
-    UploadConf = Funfig.new do
-      param :root, '/services'
-      group :nginx   do
-        param :folder do File.join(_.root, 'nginx') end
-        param :port, '8000'
+    UploadConf = Funfig.new do |p|
+      p.root '/services'
+      group :nginx   do |p|
+        p.folder { File.join(_.root, 'nginx') }
+        p.port '8000'
       end
-      param :public_ip_port, '*:80'
+      p.public_ip_port '*:80'
     end
     
     conf = UploadConf.new

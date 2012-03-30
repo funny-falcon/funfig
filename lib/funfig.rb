@@ -2,6 +2,18 @@ require "funfig/version"
 
 module Funfig
   NOT_SET = Object.new.freeze
+  class ProxyParam < BasicObject
+    def initialize(group)
+      @group = group
+    end
+    def method_missing(name, value = NOT_SET, &block)
+      unless value.equal? NOT_SET
+        @group.param name, value
+      else
+        @group.param name, &block
+      end
+    end
+  end
   class Group
     def initialize(parent=nil) # :nodoc:
       @parent = parent
@@ -148,7 +160,7 @@ module Funfig
         _._cache_clear!
         remove_instance_variable(vname)  if instance_variable_defined?(vname)
       end
-      klass.class_exec &block
+      klass.class_exec ProxyParam.new(klass), &block
     end
 
     # define named parameter
@@ -241,7 +253,7 @@ module Funfig
   # :call-seq:
   def self.new(&block)
     conf = Class.new(Root)
-    conf.class_eval &block
+    conf.class_exec ProxyParam.new(conf), &block
     conf
   end
 end
