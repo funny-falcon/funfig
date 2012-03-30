@@ -148,7 +148,7 @@ module Funfig
         _._cache_clear!
         remove_instance_variable(vname)  if instance_variable_defined?(vname)
       end
-      klass.class_eval &block
+      klass.class_exec &block
     end
 
     # define named parameter
@@ -157,10 +157,19 @@ module Funfig
     #   config = Funfig.new do
     #     param :name_of_param do calculate_default_value end
     #   end
-    def self.param(name, &block)
+    def self.param(name, value = NOT_SET, &block)
       _params[name] = true
       vname = :"@#{name}"
       name = name.to_sym
+
+      block ||= proc{
+        begin
+          value.dup
+        rescue TypeError
+          block = proc { value }
+          value
+        end
+      }
 
       define_method(name) do
         if instance_variable_defined?(vname)

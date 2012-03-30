@@ -4,12 +4,12 @@ Example
     require 'funfig'
     
     UploadConf = Funfig.new do
-      param :root    do '/services' end
+      param :root, '/services'
       group :nginx   do
         param :folder do File.join(_.root, 'nginx') end
-        param :port do '8000' end
+        param :port, '8000'
       end
-      param :public_ip_port do '*:80' end
+      param :public_ip_port, '*:80'
     end
     
     conf = UploadConf.new
@@ -24,7 +24,7 @@ Example
     Up1Conf = UploadConf.clone do
       group :nginx do
         param :folder do File.join(_.root, 'nganx') end
-        param :location do '/public' end
+        param :location, '/public'
       end
     end
     
