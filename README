@@ -24,7 +24,7 @@ Example
     Up1Conf = UploadConf.clone do
       g.nginx do
         p.folder { File.join(_.root, 'nganx') }
-        p.location, '/public'
+        p.location '/public'
       end
     end
     
@@ -40,11 +40,15 @@ TODO
 1. define array of same kinds
 
     Conf = Funfig.new do
-      param :port do 8000 end
-      param :folder do '/folder' end
+      p.port 8000
+      p.folder '/folder'
       array :servers do
-        param :port do _parent.port + _pos end
-        param :folder do File.join(_parent.folder, _pos.to_s end
+        p.port { _parent.port + _pos }
+        p.folder { File.join(_parent.folder, _pos.to_s) }
+      end
+      a.servers1 do
+        p.port { _parent.port + _pos }
+        p.folder { File.join(_parent.folder, _pos.to_s) }
       end
     end
 
@@ -52,8 +56,26 @@ TODO
 
     Conf = Funfig.new do
       hash :environments do
-        param :host     do 'localhost' end
-        param :database do "mybase_#{_name}" end
+        p.host 'localhost'
+        p.database { "mybase_#{_name}" }
+      end
+      h.environments1 do
+        p.host 'localhost'
+        p.database { "mybase_#{_name}" }
+      end
+    end
+
+3. Correct composition of schemes
+
+    ConfServ = Funfig.new do
+      p.port 80
+      p.ip   '192.168.168.192'
+    end
+
+    ConfApp = Funfig.new do
+      p.path '/srv/path'
+      g.server ConfServ do
+        p.path { _.path }
       end
     end
 

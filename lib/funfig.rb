@@ -1,4 +1,5 @@
 require "funfig/version"
+require "yaml" unless defined? YAML
 
 module Funfig
   NOT_SET = Object.new.freeze
