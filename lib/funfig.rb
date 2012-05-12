@@ -52,9 +52,11 @@ module Funfig
 
     # Update config by hash
     def update(hash)
-      hash.each{|k, v|
-        self.send("#{k}=", v)
-      }
+      if hash.respond_to?(:each)
+        hash.each{|k, v|
+          self.send("#{k}=", v)
+        }
+      end
     end
 
     # Iterate over parameter names
@@ -164,7 +166,7 @@ module Funfig
       end
 
       define_method("#{name}=") do |hash|
-        send(name).update(hash)
+        send(name).update(hash)  if hash
       end
 
       define_method("#{name}_reset!") do
