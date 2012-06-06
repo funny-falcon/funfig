@@ -14,10 +14,10 @@ module Funfig
     # :call-seq:
     #   _
     #   _root
-    def _
-      @parent._
+    def _root
+      @parent._root
     end
-    alias _root _
+    alias _ _root
 
     # Update config by hash
     def update(hash)
@@ -204,7 +204,7 @@ module Funfig
     #   end
     def self.clone(&block)
       new = super
-      new.send(:class_eval, &block)  if block_given?
+      new.class_exec &block  if block_given?
       new
     end
   end

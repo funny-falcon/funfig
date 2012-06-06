@@ -15,9 +15,10 @@ module Funfig
       raise "Already at root"
     end
 
-    def _
+    def _root
       self
     end
+    alias _ _root
 
     def self._path
       ""
