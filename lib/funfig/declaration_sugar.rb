@@ -1,7 +1,6 @@
 require "funfig/group"
 
 module Funfig
-  NOT_SET = Object.new.freeze
   class ProxyParam < BasicObject
     def initialize(group)
       @group = group

@@ -1,4 +1,5 @@
 module Funfig
+  NOT_SET = Object.new.freeze
   class Group
     def initialize(parent=nil) # :nodoc:
       @parent = parent
@@ -134,9 +135,15 @@ module Funfig
         path
       end
 
-      define_method(name) do
-        instance_variable_get(vname) ||
-          instance_variable_set(vname, klass.new(self))
+      define_method(name) do |*args, &block|
+        if !args.empty?
+          send("#{name}=", *args)
+        elsif block
+          send(name).instance_exec &block
+        else
+          instance_variable_get(vname) ||
+            instance_variable_set(vname, klass.new(self))
+        end
       end
 
       define_method("#{name}=") do |hash|
@@ -170,13 +177,15 @@ module Funfig
         end
       }
 
-      define_method(name) do
-        if instance_variable_defined?(vname)
+      define_method(name) do |*args|
+        if !args.empty?
+          send("#{name}=", *args)
+        elsif instance_variable_defined?(vname)
           instance_variable_get(vname)
         else
           if (v = _cache_get(name)).equal? NOT_SET
             raise "Parameter #{_sub_name(name)} must be set!" unless block
-            _cache_set(name, (v = instance_eval &block))
+            _cache_set(name, (v = instance_exec &block))
           end
           v
         end
