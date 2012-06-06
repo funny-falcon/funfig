@@ -19,12 +19,6 @@ module Funfig
     end
     alias _root _
 
-    # Update config by yaml file
-    def load_file(filename)
-      params = YAML.load_file(filename)
-      update(params)
-    end
-
     # Update config by hash
     def update(hash)
       if hash.respond_to?(:each)
