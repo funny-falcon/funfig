@@ -11,7 +11,7 @@ module Funfig
   # :call-seq:
   def self.new(&block)
     conf = Class.new(Root)
-    conf.class_exec ProxyParam.new(conf), &block
+    conf.class_exec &block
     conf
   end
 end
