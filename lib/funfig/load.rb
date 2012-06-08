@@ -1,9 +1,28 @@
 require 'funfig/load_proxy'
+require 'funfig/ini_parser'
 module Funfig
   class Group
     # Update config by yaml file
     def load_yaml(filename)
       params = YAML.load_file(filename)
+      update(params)
+    end
+
+    # Update config by yaml string
+    def load_yaml_string(string)
+      params = YAML.load(string)
+      update(params)
+    end
+
+    # Update config by ini file
+    def load_ini(filename)
+      params = IniParser.parse_file(filename)
+      update(params)
+    end
+
+    # Update config by ini string
+    def load_ini_string(string, file = nil)
+      params = IniParser.new.parse(string, file)
       update(params)
     end
 
@@ -32,9 +51,14 @@ module Funfig
   end
 
   class Root
-    # Load config for schema from yaml file
+    # Load config from yaml file
     def self.from_yaml_file(file)
       self.new.load_yaml(file)
+    end
+
+    # Load config from ini file
+    def self.from_ini_file(file)
+      self.new.load_ini(file)
     end
 
     # Evaluate config file inside of configuration object
@@ -46,6 +70,8 @@ module Funfig
       case file
       when /\.yml$/, /\.yaml$/
         from_yaml_file(file)
+      when /\.ini$/
+        from_ini_file(file)
       when /\.rb$/
         from_ruby_file(file)
       when Hash

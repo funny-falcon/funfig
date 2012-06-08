@@ -26,6 +26,7 @@ module Funfig
           self.send("#{k}=", v)
         }
       end
+      self
     end
 
     # Iterate over parameter names
