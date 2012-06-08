@@ -42,6 +42,7 @@ module Funfig
         end
       end
       LoadProxy.new(self).instance_eval string, file, line.to_i
+      self
     end
 
     # Update config by executing block inside of proxy
