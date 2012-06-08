@@ -64,6 +64,8 @@ module Funfig
           if @scanner.match?(/YAML([- #\[{"'<]|$)/)
             @scanner.skip(/YAML\s*/)
             yaml = true
+          elsif @scanner.skip(/WORDS[ \t]+/)
+            words = true
           end
 
           if @scanner.scan(/\s*<<(\w+)/)
@@ -74,11 +76,17 @@ module Funfig
             end
             adjust_lineno!(@scanner[1])
             value = @scanner[1].chomp
-            unless yaml
+            if words
+              value = scan_multiline_words(value)
+            elsif !yaml
               value = unindent(value, @scanner[2])
             end
+          elsif yaml
+            value = scan_yaml
+          elsif words
+            value = scan_words
           else
-            value = scan_value(yaml)
+            value = scan_simple
           end
 
           if yaml
@@ -110,39 +118,15 @@ module Funfig
 
     REPLACE_SQUOTE = {"\\'" => "'", "\\\\" => "\\"}
     REPLACE_DQUOTE = Hash.new{|h,k| h[k] = eval("\"#{k}\"")}
-    def scan_value(yaml)
-      value = ''
-      quoted = false
-      while ! skip_eol! && ! @scanner.eos?
-        if @scanner.skip(/[ \t]+/)
-          value << ' '  unless value == ''
-        end
-        if @scanner.scan(/([^"'#;\s\r\n]+)/)
-          value << @scanner[1]
-        elsif s = @scanner.scan(/'((?:\\'|[^'])*)'/)
-          quoted = true
-          adjust_lineno!(s)
-          unless yaml
-            value << @scanner[1].gsub(/\\[\\']/, REPLACE_SQUOTE)
-          else
-            value << s
-          end
-        elsif s = @scanner.scan(/"(\\.|[^"]*)"/)
-          quoted = true
-          adjust_lineno!(s)
-          unless yaml
-            val = @scanner[1].gsub(/\\(x[a-fA-F\d]{1,2}|u[a-fA-F\d]{4}|[^xu])/, REPLACE_DQUOTE)
-            value << val
-          else
-            value << s
-          end
-        else
-          break
-        end
-      end
+    def _replace_squote(str)
+      str.gsub(/\\[\\']/, REPLACE_SQUOTE)
+    end
 
-      return value  if yaml || quoted
+    def _replace_dquote(str)
+      str.gsub(/\\(x[a-fA-F\d]{1,2}|u[a-fA-F\d]{4}|[^xu])/, REPLACE_DQUOTE)
+    end
 
+    def convert_value(value)
       case value
       when '', 'null'
         nil
@@ -157,6 +141,110 @@ module Funfig
       else
         value
       end
+    end
+
+    def scan_simple
+      val = ''
+      quoted = false
+      scan_value do |kind, string|
+        case kind
+        when :space
+          val << ' '
+        when :raw
+          val << string
+        when :single_quote
+          quoted = true
+          val << _replace_squote(string)
+        when :double_quote
+          quoted = true
+          val << _replace_dquote(string)
+        end
+      end
+      unless quoted
+        convert_value(val)
+      else
+        val
+      end
+    end
+
+    def scan_yaml
+      val = ''
+      scan_value do |kind, string|
+        case kind
+        when :space
+          val << ' '
+        when :raw
+          val << string
+        when :single_quote
+          val << "'#{string}'"
+        when :double_quote
+          val << %{"#{string}"}
+        end
+      end
+      val
+    end
+
+    def scan_words
+      val = ['']
+      quoted = false
+      scan_value do |kind, string|
+        case kind
+        when :space
+          val[-1] = convert_value(val[-1]) unless quoted
+          quoted = false
+          val << ''
+        when :raw
+          val[-1] << string
+        when :single_quote
+          val[-1] << _replace_squote(string)
+          quoted = true
+        when :double_quote
+          val[-1] << _replace_dquote(string)
+          quoted = true
+        end
+      end
+      return []  if val == ['']
+      val[-1] = convert_value(val[-1]) unless quoted
+      val
+    end
+
+    def scan_value
+      empty = true
+      while ! skip_eol! && ! @scanner.eos?
+        if @scanner.skip(/[ \t]+/)
+          yield(:space)  unless empty
+        end
+        if @scanner.scan(/([^"'#;\s\r\n]+)/)
+          yield(:raw, @scanner[1])
+        elsif s = @scanner.scan(/'((?:\\'|[^'])*)'/)
+          adjust_lineno!(s)
+          yield(:single_quote, @scanner[1])
+        elsif s = @scanner.scan(/"(\\.|[^"]*)"/)
+          adjust_lineno!(s)
+          yield(:double_quote, @scanner[1])
+        else
+          break
+        end
+        empty = false
+      end
+    end
+
+    def scan_multiline_words(string)
+      scanner = StringScanner.new(string)
+      value = []
+      while !scanner.eos?
+        scanner.skip(/\s+/)
+        if s = scanner.scan(/([^"'#;\s\r\n]+)/)
+          value << convert_value(s)
+        elsif scanner.scan(/'((?:\\'|[^'])*)'/)
+          value << _replace_squote(scanner[1])
+        elsif s = scanner.scan(/"(\\.|[^"]*)"/)
+          value << _replace_dquote(scanner[1])
+        else
+          break
+        end
+      end
+      value
     end
 
     def set_value(section, param, value, line_no)

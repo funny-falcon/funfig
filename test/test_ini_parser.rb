@@ -121,4 +121,37 @@ describe Funfig::IniParser do
         ]
     })
   end
+
+  it "should parse oneline words" do
+    val = parse <<-EOF
+      sockets = WORDS tcp://127.0.0.1:80 udp://10.0.0.1:900
+      paths = WORDS "/here and/there" "/search/ and destroy" true
+      empty = WORDS   # nothing here
+    EOF
+    val.must_equal(
+      'sockets' => ['tcp://127.0.0.1:80', 'udp://10.0.0.1:900'],
+      'paths' => ['/here and/there', '/search/ and destroy', true],
+      'empty' => []
+    )
+  end
+
+  it "should parse multiline words" do
+    val = parse <<-EOF
+      sockets = WORDS <<EOV
+        tcp://127.0.0.1:80 udp://10.0.0.1:900
+        "/here and/there" "/search/ and destroy"
+        true
+      EOV
+      empty = WORDS <<EOV
+      EOV
+    EOF
+    val.must_equal(
+      'sockets' => [
+        'tcp://127.0.0.1:80', 'udp://10.0.0.1:900',
+        '/here and/there', '/search/ and destroy',
+        true
+      ],
+      'empty' => []
+    )
+  end
 end
