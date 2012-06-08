@@ -1,3 +1,4 @@
+require 'funfig/load_proxy'
 module Funfig
   class Group
     # Update config by yaml file
@@ -9,7 +10,24 @@ module Funfig
     # Update config by evaluating ruby file
     def load_ruby(file)
       rb = File.read(file)
-      instance_eval rb, file
+      load_ruby_string(rb, file)
+    end
+
+    # Update config by evaluating string containing ruby code
+    def load_ruby_string(string, file = nil)
+      unless file
+        for cl in caller
+          next  if cl =~ %r{funfig/load\.rb}
+          file, line = caller.first.match(/^(.*):(\d*)/).captures
+          break
+        end
+      end
+      LoadProxy.new(self).instance_eval string, file, line.to_i
+    end
+
+    # Update config by executing block inside of proxy
+    def exec(&block)
+      LoadProxy.new(self).instance_exec &block
     end
   end
 

@@ -130,14 +130,8 @@ module Funfig
       end
 
       define_method(name) do |*args, &block|
-        if !args.empty?
-          send("#{name}=", *args)
-        elsif block
-          send(name).instance_exec &block
-        else
-          instance_variable_get(vname) ||
-            instance_variable_set(vname, klass.new(self))
-        end
+        instance_variable_get(vname) ||
+          instance_variable_set(vname, klass.new(self))
       end
 
       define_method("#{name}=") do |hash|
@@ -172,9 +166,7 @@ module Funfig
       }
 
       define_method(name) do |*args|
-        if !args.empty?
-          send("#{name}=", *args)
-        elsif instance_variable_defined?(vname)
+        if instance_variable_defined?(vname)
           instance_variable_get(vname)
         else
           if (v = _cache_get(name)).equal? NOT_SET
