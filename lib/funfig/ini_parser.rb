@@ -78,7 +78,7 @@ module Funfig
               value = unindent(value, @scanner[2])
             end
           else
-            value = scan_value
+            value = scan_value(yaml)
           end
 
           if yaml
@@ -110,7 +110,7 @@ module Funfig
 
     REPLACE_SQUOTE = {"\\'" => "'", "\\\\" => "\\"}
     REPLACE_DQUOTE = Hash.new{|h,k| h[k] = eval("\"#{k}\"")}
-    def scan_value
+    def scan_value(yaml)
       value = ''
       quoted = false
       while ! skip_eol! && ! @scanner.eos?
@@ -122,19 +122,26 @@ module Funfig
         elsif s = @scanner.scan(/'((?:\\'|[^'])*)'/)
           quoted = true
           adjust_lineno!(s)
-          value << @scanner[1].gsub(/\\[\\']/, REPLACE_SQUOTE)
+          unless yaml
+            value << @scanner[1].gsub(/\\[\\']/, REPLACE_SQUOTE)
+          else
+            value << s
+          end
         elsif s = @scanner.scan(/"(\\.|[^"]*)"/)
           quoted = true
           adjust_lineno!(s)
-          # please, tell me how to do it cleaner
-          val = @scanner[1].gsub(/\\(x[a-fA-F\d]{1,2}|u[a-fA-F\d]{4}|[^xu])/, REPLACE_DQUOTE)
-          value << val
+          unless yaml
+            val = @scanner[1].gsub(/\\(x[a-fA-F\d]{1,2}|u[a-fA-F\d]{4}|[^xu])/, REPLACE_DQUOTE)
+            value << val
+          else
+            value << s
+          end
         else
           break
         end
       end
 
-      return value  if quoted
+      return value  if yaml || quoted
 
       case value
       when '', 'null'

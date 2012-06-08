@@ -101,6 +101,9 @@ describe Funfig::IniParser do
     parse('a = YAML {hi: ho}').must_equal('a'=>{'hi'=>'ho'})
     parse('a = YAML [hi, ho]').must_equal('a'=>['hi', 'ho'])
     parse('a = YAML 2011-01-01').must_equal('a'=>Date.new(2011, 1, 1))
+    parse('a = YAML ["hi:ho", "ya:yo"]').must_equal(
+      'a'=>['hi:ho', 'ya:yo']
+    )
   end
 
   it "should parse multiline yaml" do
