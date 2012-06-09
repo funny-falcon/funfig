@@ -180,14 +180,16 @@ module Funfig
       vname = :"@#{name}"
       name = name.to_sym
 
-      block ||= proc{
-        begin
-          value.dup
-        rescue TypeError
-          block = proc { value }
-          value
-        end
-      }
+      unless block || value == NOT_SET
+        block = proc{
+          begin
+            value.dup
+          rescue TypeError
+            block = proc { value }
+            value
+          end
+        }
+      end
 
       define_method(name) do |*args|
         if instance_variable_defined?(vname)
