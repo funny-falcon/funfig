@@ -65,6 +65,24 @@ module Funfig
       h
     end
 
+    # Imitate aget
+    def [](k)
+      if self.class._params[k.to_sym]
+        send(k)
+      else
+        raise "Attempt to get not existed param #{_sub_name(k)}"
+      end
+    end
+
+    # Imitate aset
+    def []=(k, v)
+      if self.class._params[k.to_sym]
+        send("#{k}=", v)
+      else
+        raise "Attempt to set not existed param #{_sub_name(k)}"
+      end
+    end
+
     def inspect
       "<#{self.class.name} #{each.map{|k,v| "#{k}=#{v.inspect}"}.join(' ')}>"
     end
@@ -85,6 +103,10 @@ module Funfig
 
     def _path
       self.class._path
+    end
+
+    def method_missing(name, *args)
+      raise "Not existed param #{_sub_name(name.to_s.sub(/=$/,''))}"
     end
 
     def self._params
