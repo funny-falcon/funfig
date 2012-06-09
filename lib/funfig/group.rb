@@ -23,7 +23,7 @@ module Funfig
     def update(hash)
       if hash.respond_to?(:each)
         hash.each{|k, v|
-          k = k.gsub('-', '_')
+          k = k.to_s.gsub('-', '_')
           self.send("#{k}=", v)
         }
       end
