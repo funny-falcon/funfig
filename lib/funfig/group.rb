@@ -203,6 +203,8 @@ module Funfig
         end
       end
 
+      alias_method :"#{name}?", name
+
       define_method("#{name}=") do |v|
         _._cache_clear!
         instance_variable_set(vname, v)
