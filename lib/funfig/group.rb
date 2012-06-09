@@ -155,7 +155,7 @@ module Funfig
 
       define_method(name) do |*args, &block|
         instance_variable_get(vname) ||
-          instance_variable_set(vname, klass.new(self))
+          instance_variable_set(vname, self.class._params[name].new(self))
       end
 
       define_method("#{name}=") do |hash|
@@ -226,6 +226,32 @@ module Funfig
       new = super
       new.class_exec &block  if block_given?
       new
+    end
+
+    def self.drained
+      klone = clone
+      for par, val in _params
+        if val.is_a?(Class) && Group > val
+          klone._params[par] = val.drained
+        else
+          klone.param(par)
+        end
+      end
+      klone
+    end
+
+    def self.as_root
+      params = _params
+      new_root = Funfig.new do
+        for par, val in params
+          if val.is_a?(Class) && Group > val
+            _params[par] = val.drained
+            group(par){ }
+          else
+            param(par)
+          end
+        end
+      end
     end
   end
 end
