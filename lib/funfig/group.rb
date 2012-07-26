@@ -177,7 +177,7 @@ module Funfig
       klass = _prev.is_a?(Class) && Group >= _prev ? _prev : Class.new(Group)
       _params[name] = klass
       path = _sub_name(name)
-      const_set name.capitalize, klass
+      const_set name.to_s.gsub(/(^|_)([a-z])/){ $2.upcase }, klass
 
       klass.send(:define_singleton_method, :_path) do
         path
