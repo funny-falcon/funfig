@@ -184,7 +184,7 @@ module Funfig
       end
       klass.instance_variable_set(:@parent, self)
 
-      define_method(name) do |*args, &block|
+      define_method(name) do
         instance_variable_get(vname) ||
           instance_variable_set(vname, self.class._params[name].new(self))
       end
@@ -197,7 +197,7 @@ module Funfig
         _._cache_clear!
         remove_instance_variable(vname)  if instance_variable_defined?(vname)
       end
-      klass.class_exec &block
+      klass.class_exec(&block)
       klass
     end
 
@@ -223,7 +223,7 @@ module Funfig
         }
       end
 
-      define_method(name) do |*args|
+      define_method(name) do
         if instance_variable_defined?(vname)
           instance_variable_get(vname)
         else
@@ -287,6 +287,7 @@ module Funfig
     #   other_conf = config.clone do
     #     param :other_value do other_default end
     #   end
+    #
     def self.clone(&block)
       new = super
       new.class_exec &block  if block_given?
