@@ -26,6 +26,8 @@ module Funfig
           k = k.to_s.gsub('-', '_')
           self.send("#{k}=", v)
         }
+      else
+        raise "Could not use #{hash} as value for group #{_path}"
       end
       self
     end
