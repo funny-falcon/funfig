@@ -67,6 +67,14 @@ module Funfig
       h
     end
 
+    def to_yaml(explicit=false)
+      to_hash(explicit).to_yaml
+    end
+
+    def to_json(explicit=false)
+      to_hash(explicit).to_json
+    end
+
     # Imitate aget
     def [](k)
       if self.class._params[k.to_sym]
