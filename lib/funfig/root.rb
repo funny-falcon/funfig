@@ -21,11 +21,11 @@ module Funfig
     alias _ _root
 
     def self._path
-      ""
+      "_"
     end
 
-    def self._sub_name(name)
-      name.to_s
+    def self._root
+      self
     end
   end
   # :startdoc:

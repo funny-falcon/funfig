@@ -133,6 +133,26 @@ module Funfig
 
     # :startdoc:
 
+    def self._parent
+      @parent
+    end
+
+    def self._root
+      @parent._root
+    end
+
+    def self._
+      _root
+    end
+
+    def self.method_missing(name, *args)
+      (args.empty? && _params[name.to_sym]) || super
+    end
+
+    def self._path_proc
+      eval "lambda{ #{_path} }"
+    end
+
     # Define named group of values
     #
     # :call-seq:
@@ -152,6 +172,7 @@ module Funfig
       klass.send(:define_singleton_method, :_path) do
         path
       end
+      klass.instance_variable_set(:@parent, self)
 
       define_method(name) do |*args, &block|
         instance_variable_get(vname) ||
@@ -167,6 +188,7 @@ module Funfig
         remove_instance_variable(vname)  if instance_variable_defined?(vname)
       end
       klass.class_exec &block
+      klass
     end
 
     # define named parameter
@@ -213,6 +235,39 @@ module Funfig
       define_method("#{name}_reset!") do
         _._cache_clear!
         remove_instance_variable(vname)  if instance_variable_defined?(vname)
+      end
+    end
+
+    # Create a reference to other group in config
+    #
+    # :call-seq:
+    #   conf = Funfug.new do
+    #     group :some do
+    #       group :origin do
+    #         param :first, 1
+    #         param :second, 2
+    #       end
+    #     end
+    #     group :awe do
+    #       reference :copy, _.some.origin do
+    #         # implicitly added:
+    #         # param :first do _.some.origin.first end
+    #         # param :second do _.some.origin.second end
+    #         param :third, 3
+    #       end
+    #     end
+    def self.reference(name, refered, &block)
+      path_proc = refered._path_proc
+      refered_params = refered._params
+      group name do
+        refered_params.each do |name, value|
+          if value == true
+            param(name){ instance_exec(&path_proc).send(name) }
+          else
+            reference(name, value)
+          end
+        end
+        class_exec &block  if block
       end
     end
 
